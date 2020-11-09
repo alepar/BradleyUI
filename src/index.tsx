@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 
 import * as PIXI from 'pixi.js'
+import { Viewport } from 'pixi-viewport'
 
 ReactDOM.render(
   <React.StrictMode>
@@ -165,10 +166,29 @@ app.loader
         const overworld = resources.overworld?.spritesheet
         if (!overworld) throw new Error("could not load overworld texture atlas");
 
-        const viewport = new PIXI.Container()
-        viewport.scale.set(3, 3)
+
+        // create viewport
+        const viewport = new Viewport({
+            screenWidth: 1400,//window.innerWidth,
+            screenHeight: 900,//window.innerHeight,
+            // worldWidth: 16*30,
+            // worldHeight: 16*15,
+
+            interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+        })
+
+        // add the viewport to the stage
         app.stage.addChild(viewport)
 
+        // activate plugins
+        viewport
+            .drag()
+            .pinch()
+            .wheel()
+            .decelerate()
+            // .bounce()
+        viewport
+            .scale.set(3, 3)
 
         const waterSpriteFactory = new SimpleSpriteFactory(overworld)
         const map = new StringBackedMap(stringmap)
@@ -191,14 +211,14 @@ app.loader
         viewport.addChild(grid)
         for (let x=1; x < map.size.x; x++) {
             const line = new PIXI.Graphics();
-            line.lineStyle(1, 0xFFFFFF, 0.25);
+            line.lineStyle(1, 0xFFFFFF, 0.15);
             line.moveTo(x*16, 0);
             line.lineTo(x*16, 16*map.size.y);
             grid.addChild(line);
         }
         for (let y=1; y < map.size.y; y++) {
             const line = new PIXI.Graphics();
-            line.lineStyle(1, 0xFFFFFF, 0.25);
+            line.lineStyle(1, 0xFFFFFF, 0.15);
             line.moveTo(0, y*16);
             line.lineTo(16*map.size.x, y*16);
             grid.addChild(line);
@@ -225,7 +245,7 @@ app.loader
                 hero.goUp()
             } else if (hero.container.y < 0) {
                 hero.container.y = 0
-                hero.goIdle()
+                hero.goRight()
             }
         });
 });
