@@ -1081,14 +1081,6 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@inlet/react-pixi@^6.0.2":
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/@inlet/react-pixi/-/react-pixi-6.0.2.tgz#9d9349930bf95b75e943d1c613f0cbc082167b1e"
-  integrity sha512-YGXhM7u9frjYOBzu1lsr5bbTYGre+YqN9DTWKUp9zApZIt/Ot/YJuFBQbOO45ChCi6GDyQutDssdvbAqc2L5aw==
-  dependencies:
-    performance-now "2.1.0"
-    react-reconciler "0.26.1"
-
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz"
@@ -1429,6 +1421,13 @@
   integrity sha512-HCky3XPk6BYGXTS7d9/FnAHnqq7Rwm5Rlj2XtWW3JItXGCScEBII227xYwrJu5Ke84tpVlDXK4W1/BevZ1AwlQ==
   dependencies:
     "@pixi/core" "5.3.3"
+
+"@pixi/graphics-extras@^5.3.3":
+  version "5.3.3"
+  resolved "https://registry.yarnpkg.com/@pixi/graphics-extras/-/graphics-extras-5.3.3.tgz#35ccbaf7ba6d48627927af9f9ed5b1b36a91292d"
+  integrity sha512-00WG1U6X2Ta/tzOjeqlvE00DFNdWLpaA/BOuQW8X18BJoriX7XE245+vGeyhHrjLor2VCG9qJCf91390FPnVjg==
+  dependencies:
+    "@pixi/graphics" "5.3.3"
 
 "@pixi/graphics@5.3.3":
   version "5.3.3"
@@ -8415,7 +8414,7 @@ penner@^0.1.3:
   resolved "https://registry.yarnpkg.com/penner/-/penner-0.1.3.tgz#0b8b482d4e9b39af2f3d7c37592229b8acc29705"
   integrity sha1-C4tILU6bOa8vPXw3WSIpuKzClwU=
 
-performance-now@2.1.0, performance-now@^2.1.0:
+performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
@@ -9544,15 +9543,6 @@ react-is@^17.0.1:
   version "17.0.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.1.tgz"
   integrity sha512-NAnt2iGDXohE5LI7uBnLnqvLQMtzhkiAOLXTmv+qnF9Ky7xAPcX8Up/xWIhxvLVGJvuLiNc4xQLtuqDRzb4fSA==
-
-react-reconciler@0.26.1:
-  version "0.26.1"
-  resolved "https://registry.yarnpkg.com/react-reconciler/-/react-reconciler-0.26.1.tgz#860952dd359fd870f94895c254271e3a9de3b2d6"
-  integrity sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    scheduler "^0.20.1"
 
 react-redux@^7.2.0:
   version "7.2.2"
