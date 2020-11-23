@@ -1,0 +1,3 @@
+[submodule "proto"]
+	path = proto
+	url = https://github.com/gsingh62/BradleyInterface.git
