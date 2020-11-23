@@ -3,6 +3,7 @@
 /.idea
 
 src/protots/*_pb.d.ts
+src/protots/*.js
 
 # dependencies
 /node_modules

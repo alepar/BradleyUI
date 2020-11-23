@@ -1,4 +1,4 @@
-import {GameData} from "../state/GameData";
+import {UIGameData} from "../state/UIGameData";
 import {Viewport} from "pixi-viewport";
 import * as PIXI from 'pixi.js'
 import {OverworldTerrainSpriteFactory} from "./SpriteFactories";
@@ -41,7 +41,7 @@ function calculateObserved() {
 export class GameUI {
     // Injected deps
     private pixiApp: PIXI.Application;
-    private gameData: GameData
+    private gameData: UIGameData
     private spritesheet: PIXI.Spritesheet;
     private controlState: GameControlState
 
@@ -55,7 +55,7 @@ export class GameUI {
     // Constructed exported deps
     readonly viewport: Viewport
 
-    constructor(pixiApp: PIXI.Application, gameData: GameData, spritesheet: PIXI.Spritesheet, controlState: GameControlState) {
+    constructor(pixiApp: PIXI.Application, gameData: UIGameData, spritesheet: PIXI.Spritesheet, controlState: GameControlState) {
         this.gameData = gameData
         this.pixiApp = pixiApp
         this.spritesheet = spritesheet

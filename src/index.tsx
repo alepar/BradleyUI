@@ -8,8 +8,9 @@ import * as serviceWorker from './serviceWorker';
 
 import * as PIXI from 'pixi.js'
 import {GameControlState, GameUI} from "./features/game/ui/GameUI";
-import {GameData, MapData, TurnData} from "./features/game/state/GameData";
+import {UIGameData, UIMapData, UITurnData} from "./features/game/state/UIGameData";
 import {TerrainType} from "./features/game/ui/SpriteFactories";
+import {GameData} from "./protots/bradleyinterface_pb";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -20,6 +21,15 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
+
+fetch('./bradleygame.pb').then(response => {
+    response.arrayBuffer().then(buf => {
+        const gameData = GameData.deserializeBinary(new Uint8Array(buf));
+        for (const turn of gameData.getTurnsList()) {
+            console.log(turn.getHero()?.getX(), turn.getHero()?.getY())
+        }
+    })
+})
 
 // Setup PIXI app
 const app = new PIXI.Application({
@@ -85,7 +95,7 @@ const stringmap = [
     "XXXXXXXXXXXXXXXXXXXXXXXXX",
 ]
 
-class StringBackedMap implements MapData {
+class StringBackedMap implements UIMapData {
 
     stringmap: string[]
     size: PIXI.IPointData;
@@ -140,10 +150,10 @@ app.loader
 
 
         const map = new StringBackedMap(stringmap)
-        const gameData: GameData = {
-            getMap(): MapData {
+        const gameData: UIGameData = {
+            getMap(): UIMapData {
                 return map;
-            }, getTurnState(turnNr: number): TurnData {
+            }, getTurnState(turnNr: number): UITurnData {
                 return {};
             }
         }
