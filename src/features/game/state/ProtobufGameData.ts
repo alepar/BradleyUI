@@ -63,7 +63,6 @@ class ProtobufBackedUIMapData implements UIMapData {
     getExitPos(): PIXI.IPointData {
         let exitPos: PIXI.IPointData | undefined
         this.map.forEach(node => {
-            console.log(node.getNodetype() + ", " + (node.getNodetype() === NodeType.EXIT_NODE))
             if (node.getNodetype() === NodeType.EXIT_NODE) {
                 const coordinate = node.getCoordinate();
                 if (coordinate) {
