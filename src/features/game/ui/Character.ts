@@ -4,10 +4,8 @@ export class Character {
 
     readonly container = new PIXI.Container()
 
-    private vx: number = 0
-    private vy: number = 0
-
-    walkSpeed: number
+    private src: PIXI.IPointData = {x:0, y:0}
+    private dst: PIXI.IPointData = {x:0, y:0}
 
     private up: PIXI.AnimatedSprite
     private down: PIXI.AnimatedSprite
@@ -16,9 +14,7 @@ export class Character {
     private idle: PIXI.AnimatedSprite
     private all: PIXI.AnimatedSprite[] = []
 
-    constructor(sheet: PIXI.Spritesheet, charName: string, walkSpeed: number = 1) {
-        this.walkSpeed = walkSpeed
-
+    constructor(sheet: PIXI.Spritesheet, charName: string) {
         this.up = this.createAnimatedSprite(sheet.animations[`${charName}/walk/up`])
         this.down = this.createAnimatedSprite(sheet.animations[`${charName}/walk/down`])
         this.left = this.createAnimatedSprite(sheet.animations[`${charName}/walk/side`])
@@ -31,35 +27,47 @@ export class Character {
         this.idle.visible = true
     }
 
-    setv(vx: number, vy: number) {
-        this.vx = vx * this.walkSpeed
-        this.vy = vy * this.walkSpeed
-
+    setCoordinates(src: PIXI.IPointData, dst: PIXI.IPointData) {
+        this.src = src
+        this.dst = dst
         this.updateSprite()
     }
 
-    step() {
-        this.container.x += this.vx
-        this.container.y += this.vy
+    updateTween(fract: number) {
+        const src = this.src;
+        const dst = this.dst;
+
+        const vx = dst.x - src.x
+        const vy = dst.y - src.y
+
+        this.container.position.set(
+            16 * (src.x + vx * fract),
+            16 * (src.y + vy * fract),
+        )
     }
 
     private updateSprite() {
-        if (this.vx === 0 && this.vy === 0) {
+        const src = this.src;
+        const dst = this.dst;
+
+        const vx = dst.x - src.x
+        const vy = dst.y - src.y
+
+        if (vx === 0 && vy === 0) {
             this.setVisible(this.idle)
-        } else if (this.vx === 0) {
-            if (this.vy > 0) {
+        } else if (vx === 0) {
+            if (vy > 0) {
                 this.setVisible(this.down)
             } else {
                 this.setVisible(this.up)
             }
-        } else if (this.vy === 0) {
-            if (this.vx > 0) {
+        } else {
+            // vy === 0 OR diagonal move
+            if (vx > 0) {
                 this.setVisible(this.right)
             } else {
                 this.setVisible(this.left)
             }
-        } else {
-            throw new Error("diagonal velocity not supported")
         }
     }
 

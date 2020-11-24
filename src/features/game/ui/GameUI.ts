@@ -18,39 +18,22 @@ export class GameControlState {
     playMode: GamePlayMode = GamePlayMode.STOP
 }
 
-function calculateVisible(heroX: number, heroY: number) {
-    const visible: PIXI.IPointData[] = [];
-    for(let x=heroX-2; x<=heroX+2; x++) {
-        for(let y=heroY-2; y<=heroY+2; y++) {
-            visible.push({x: x, y: y})
-        }
-    }
-    return visible
-}
-
-function calculateObserved() {
-    const observed: PIXI.IPointData[] = [];
-    for(let x=-2; x<=6; x++) {
-        for(let y=-2; y<=6; y++) {
-            observed.push({x: x, y: y})
-        }
-    }
-    return observed
-}
-
 export class GameUI {
     // Injected deps
-    private pixiApp: PIXI.Application;
-    private gameData: UIGameData
-    private spritesheet: PIXI.Spritesheet;
-    private controlState: GameControlState
+    private readonly pixiApp: PIXI.Application;
+    private readonly gameData: UIGameData
+    private readonly spritesheet: PIXI.Spritesheet;
+    private readonly controlState: GameControlState
 
     // Constructed private deps
-    private terrainLayer: PIXI.Container
-    private gridLayer: PIXI.Container
-    private characterLayer: PIXI.Container
-    private fogOfWar: FogOfWar
-    private baseTweenTurn: number = 0
+    private readonly terrainLayer: PIXI.Container
+    private readonly mapObjectsLayer: PIXI.Container
+    private readonly gridLayer: PIXI.Container
+    private readonly characterLayer: PIXI.Container
+    private readonly fogOfWar: FogOfWar
+    private readonly hero: Character;
+
+    private lastBaseTurn: number = 0
 
     // Constructed exported deps
     readonly viewport: Viewport
@@ -64,11 +47,15 @@ export class GameUI {
         this.viewport = this.buildViewport()
 
         this.terrainLayer = this.buildTerrainLayer()
+        this.mapObjectsLayer = this.buildMapObjectsLayer()
         this.gridLayer = this.buildGridLayer()
         this.characterLayer = new PIXI.Container()
         this.fogOfWar = new FogOfWar()
 
         this.viewport.addChild(this.terrainLayer)
+
+        this.mapObjectsLayer.position.set(8, 8)
+        this.viewport.addChild(this.mapObjectsLayer)
 
         this.gridLayer.position.set(8, 8)
         this.viewport.addChild(this.gridLayer)
@@ -79,41 +66,23 @@ export class GameUI {
         this.fogOfWar.container.position.set(8, 8)
         this.viewport.addChild(this.fogOfWar.container)
 
-        const hero = new Character(this.spritesheet, "character/hero");
-        this.characterLayer.addChild(hero.container)
-        hero.setv(1, 0)
+        this.hero = new Character(this.spritesheet, "character/hero");
+        this.characterLayer.addChild(this.hero.container)
 
-        this.fogOfWar.update(
-            this.gameData.getMap().getSize(),
-            calculateVisible(0, 0),
-            calculateObserved()
-        )
+        this.renderBaseTurn(0)
 
         // Listen for frame updates
-        pixiApp.ticker.add(() => {
-            hero.step()
+        const ticker = pixiApp.ticker;
+        ticker.add(() => {
+            this.controlState.currentTurn += 1.0/ticker.FPS
+            const curBaseTurn = Math.floor(this.controlState.currentTurn)
 
-            if (hero.container.x > 4 * 16) {
-                hero.container.x = 4 * 16
-                hero.setv(0, 1)
-            } else if (hero.container.y > 4 * 16) {
-                hero.container.y = 4 * 16
-                hero.setv(-1, 0)
-            } else if (hero.container.x < 0) {
-                hero.container.x = 0
-                hero.setv(0, -1)
-            } else if (hero.container.y < 0) {
-                hero.container.y = 0
-                hero.setv(1, 0)
+            if (curBaseTurn !== this.lastBaseTurn) {
+                this.renderBaseTurn(curBaseTurn)
+                this.lastBaseTurn = curBaseTurn
             }
 
-            const heroX = Math.floor(hero.container.x/16)
-            const heroY = Math.floor(hero.container.y/16)
-            this.fogOfWar.update(
-                this.gameData.getMap().getSize(),
-                calculateVisible(heroX, heroY),
-                calculateObserved()
-            )
+            this.renderTween(this.controlState.currentTurn)
         });
 
     }
@@ -164,6 +133,15 @@ export class GameUI {
         return terrain
     }
 
+    private buildMapObjectsLayer(): PIXI.Container {
+        const mapObjectsLayer = new PIXI.Container()
+        const exitPos = this.gameData.getMap().getExitPos();
+        const sprite = new PIXI.Sprite(this.spritesheet.textures["object/castle"]);
+        sprite.position.set(exitPos.x*16, exitPos.y*16)
+        mapObjectsLayer.addChild(sprite)
+        return mapObjectsLayer
+    }
+
     private buildGridLayer(): PIXI.Container {
         const map = this.gameData.getMap();
         const mapSize = map.getSize();
@@ -186,4 +164,26 @@ export class GameUI {
 
         return grid
     }
+
+    private renderBaseTurn(curTurn: number) {
+        const turnState = this.gameData.getTurnState(curTurn);
+
+        this.fogOfWar.update(
+            this.gameData.getMap().getSize(),
+            turnState.getVisible(),
+            turnState.getObserved(),
+        )
+
+        const curHeroPos = turnState.getHero();
+        const nextHeroPos = this.gameData.getTurnState(curTurn+1).getHero()
+
+        const hero = this.hero;
+        hero.setCoordinates(curHeroPos, nextHeroPos)
+        hero.updateTween(0)
+    }
+
+    private renderTween(currentTurn: number) {
+        this.hero.updateTween(currentTurn-Math.floor(currentTurn))
+    }
+
 }

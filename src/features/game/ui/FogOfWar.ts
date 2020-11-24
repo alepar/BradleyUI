@@ -44,7 +44,7 @@ export class FogOfWar {
 
         visibleGraphics.beginHole();
         for (const p of holePoints) {
-            visibleGraphics.drawRect(p.x * 16, p.y * 16, 16, 16);
+            visibleGraphics.drawRect(p.x * 16, p.y * 16, 15, 15);
         }
         visibleGraphics.endHole();
 
