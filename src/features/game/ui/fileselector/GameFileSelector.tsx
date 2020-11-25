@@ -19,12 +19,19 @@ const getColor = (props: any) => {
 }
 
 // https://css-tricks.com/centering-css-complete-guide/
-const ParentContainer = styled.div`
+const FullscreenContainer = styled.div`
     height: 100%;
     width: 100%;
 `;
 
-const Container = styled.div`
+const IconContainer = styled.div`
+  position: absolute;
+  top: 128px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`
+
+const UploadContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -75,11 +82,12 @@ export function GameFileSelector() {
             }
         </Alert>)
     } else {
-        return (<ParentContainer>
-            <Container {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
+        return (<FullscreenContainer>
+            <IconContainer><img src="favicon.ico" width="64px" height="64px"/></IconContainer>
+            <UploadContainer {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
                 <input {...getInputProps()} />
                 <p>Please upload a game replay file...</p>
-            </Container>
-        </ParentContainer>)
+            </UploadContainer>
+        </FullscreenContainer>)
     }
 }
