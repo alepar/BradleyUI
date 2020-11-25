@@ -1,6 +1,12 @@
 BRADLEY_PROTOS  	:= $(shell find ./proto -type f -name '*.proto')
 BRADLEY_PBTS     	:= $(patsubst ./proto/%.proto,./src/protots/%_pb.d.ts,$(BRADLEY_PROTOS))
 
+.PHONY: clean proto build
+
+all : build
+
+build : proto
+	npm run build
 
 proto : $(BRADLEY_PBTS)
 
@@ -11,8 +17,7 @@ $(BRADLEY_PBTS) &: $(BRADLEY_PROTOS)
 		--js_out=import_style=commonjs,binary:./src/protots/ \
 		$(BRADLEY_PROTOS)
 
-.PHONY: clean
-
 clean:
 	rm -rf ./src/protots/*.ts ./src/protots/*.js
+	rm -fr ./build
 
