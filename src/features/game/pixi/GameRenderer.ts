@@ -1,4 +1,4 @@
-import {UIGameData} from "../state/UIGameData";
+import {PixiGameData} from "../state/PixiGameData";
 import {Viewport} from "pixi-viewport";
 import * as PIXI from 'pixi.js'
 import {OverworldTerrainSpriteFactory} from "./SpriteFactories";
@@ -18,10 +18,10 @@ export class GameControlState {
     playMode: GamePlayMode = GamePlayMode.STOP
 }
 
-export class GameUI {
+export class GameRenderer {
     // Injected deps
     private readonly pixiApp: PIXI.Application;
-    private readonly gameData: UIGameData
+    private readonly gameData: PixiGameData
     private readonly spritesheet: PIXI.Spritesheet;
     private readonly controlState: GameControlState
 
@@ -38,7 +38,7 @@ export class GameUI {
     // Constructed exported deps
     readonly viewport: Viewport
 
-    constructor(pixiApp: PIXI.Application, gameData: UIGameData, spritesheet: PIXI.Spritesheet, controlState: GameControlState) {
+    constructor(pixiApp: PIXI.Application, gameData: PixiGameData, spritesheet: PIXI.Spritesheet, controlState: GameControlState) {
         this.gameData = gameData
         this.pixiApp = pixiApp
         this.spritesheet = spritesheet
@@ -73,7 +73,7 @@ export class GameUI {
 
         // Listen for frame updates
         const ticker = pixiApp.ticker;
-        ticker.add(() => {
+        const mainLoop = () => {
             this.controlState.currentTurn += 1.0/ticker.FPS
             const curBaseTurn = Math.floor(this.controlState.currentTurn)
 
@@ -82,9 +82,13 @@ export class GameUI {
                 this.lastBaseTurn = curBaseTurn
             }
 
-            this.renderTween(this.controlState.currentTurn)
-        });
-
+            if (this.controlState.currentTurn >= this.gameData.getTurnCount()-1) {
+                ticker.remove(mainLoop)
+            } else {
+                this.renderTween(this.controlState.currentTurn)
+            }
+        }
+        ticker.add(mainLoop);
     }
 
 
@@ -166,16 +170,22 @@ export class GameUI {
     }
 
     private renderBaseTurn(curTurn: number) {
-        const turnState = this.gameData.getTurnState(curTurn);
+        const gameData = this.gameData;
+        const turnState = gameData.getTurnState(curTurn);
 
         this.fogOfWar.update(
-            this.gameData.getMap().getSize(),
+            gameData.getMap().getSize(),
             turnState.getVisible(),
             turnState.getObserved(),
         )
 
         const curHeroPos = turnState.getHero();
-        const nextHeroPos = this.gameData.getTurnState(curTurn+1).getHero()
+        let nextHeroPos
+        if (curTurn === gameData.getTurnCount()-1) {
+            nextHeroPos = curHeroPos
+        } else {
+            nextHeroPos = gameData.getTurnState(curTurn+1).getHero()
+        }
 
         const hero = this.hero;
         hero.setCoordinates(curHeroPos, nextHeroPos)

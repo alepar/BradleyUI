@@ -1,9 +1,9 @@
 import {GameData, Node, NodeType, TurnData} from "../../../protots/bradleyinterface_pb";
-import {UIGameData, UIMapData, UITurnData} from "./UIGameData";
-import {TerrainType} from "../ui/SpriteFactories";
+import {PixiGameData, PixiMapData, PixiTurnData} from "./PixiGameData";
+import {TerrainType} from "../pixi/SpriteFactories";
 import * as PIXI from "pixi.js";
 
-class ProtobufBackedUIMapData implements UIMapData {
+class ProtobufBackedUIMapData implements PixiMapData {
 
     private readonly map: Map<string, Node>
     private readonly size: PIXI.IPointData
@@ -79,7 +79,7 @@ class ProtobufBackedUIMapData implements UIMapData {
 
 }
 
-class ProtobufBackedUITurnData implements UITurnData {
+class ProtobufBackedUITurnData implements PixiTurnData {
 
     constructor(private readonly turnNr: number, private readonly turnData: TurnData, private readonly radius: number) {
     }
@@ -116,7 +116,7 @@ class ProtobufBackedUITurnData implements UITurnData {
 
 }
 
-export class ProtobufBackedUIGameData implements UIGameData {
+export class ProtobufBackedUIGameData implements PixiGameData {
 
     private readonly pb: GameData
 
@@ -124,7 +124,7 @@ export class ProtobufBackedUIGameData implements UIGameData {
         this.pb = pbGameData
     }
 
-    getMap(): UIMapData {
+    getMap(): PixiMapData {
         return new ProtobufBackedUIMapData(this.pb.getMapList())
     }
 
@@ -132,7 +132,7 @@ export class ProtobufBackedUIGameData implements UIGameData {
         return this.pb.getTurnsList().length;
     }
 
-    getTurnState(turnNr: number): UITurnData {
+    getTurnState(turnNr: number): PixiTurnData {
         return new ProtobufBackedUITurnData(turnNr, this.pb.getTurnsList()[turnNr], this.pb.getVisibilityradius())
     }
 
