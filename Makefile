@@ -1,9 +1,12 @@
 BRADLEY_PROTOS  	:= $(shell find ./proto -type f -name '*.proto')
 BRADLEY_PBTS     	:= $(patsubst ./proto/%.proto,./src/protots/%_pb.d.ts,$(BRADLEY_PROTOS))
 
-.PHONY: clean proto build
+.PHONY: clean proto build package
 
 all : build
+
+package : build
+	tar cJf bradley-www.tar.xz -C build .
 
 build : proto
 	npm run build
@@ -19,5 +22,5 @@ $(BRADLEY_PBTS) &: $(BRADLEY_PROTOS)
 
 clean:
 	rm -rf ./src/protots/*.ts ./src/protots/*.js
-	rm -fr ./build
-
+	rm -rf ./build
+	rm -rf ./*.tar.xz
