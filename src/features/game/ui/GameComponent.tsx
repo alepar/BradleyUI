@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {GameFileSelector} from "./fileselector/GameFileSelector";
 import * as PIXI from "pixi.js";
 import {GameControlState, GameRenderer} from "../pixi/GameRenderer";
 import {PixiGameData} from "../state/PixiGameData";
