@@ -1,9 +1,8 @@
 import React from 'react';
 import {useDropzone} from 'react-dropzone';
 import styled from 'styled-components';
-import {clearGameFile, loadFile, selectGameFileState} from "./gameFileSlice";
-import {useDispatch, useSelector} from "react-redux";
-import Alert from "react-bootstrap/Alert";
+import {loadFile} from "./gameFileSlice";
+import {useDispatch} from "react-redux";
 
 const getColor = (props: any) => {
     if (props.isDragAccept) {
@@ -19,11 +18,6 @@ const getColor = (props: any) => {
 }
 
 // https://css-tricks.com/centering-css-complete-guide/
-const FullscreenContainer = styled.div`
-    height: 100%;
-    width: 100%;
-`;
-
 const IconContainer = styled.div`
   position: absolute;
   top: 128px;
@@ -70,24 +64,11 @@ export function GameFileSelector() {
         }
     });
 
-    const gameFileState = useSelector(selectGameFileState);
-
-    if (gameFileState.gameName) {
-        return (<Alert variant="success" dismissible onClose={() => dispatch(clearGameFile())}>
-            <b>{gameFileState.gameName}: </b>
-            {gameFileState.gameData &&
-                <span>Turns={gameFileState.gameData.getTurnCount()},
-                      Map size={gameFileState.gameData.getMap().getSize().x}x{gameFileState.gameData.getMap().getSize().y}
-                </span>
-            }
-        </Alert>)
-    } else {
-        return (<FullscreenContainer>
-            <IconContainer><img src="favicon.ico" width="64px" height="64px"/></IconContainer>
-            <UploadContainer {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
-                <input {...getInputProps()} />
-                <p>Please upload a game replay file...</p>
-            </UploadContainer>
-        </FullscreenContainer>)
-    }
+    return (<div>
+        <IconContainer><img src="favicon.ico" width="64px" height="64px" alt="Bradley Hero"/></IconContainer>
+        <UploadContainer {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
+            <input {...getInputProps()} />
+            <p>Please upload a game replay file...</p>
+        </UploadContainer>
+    </div>)
 }

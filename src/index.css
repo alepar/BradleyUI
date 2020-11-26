@@ -11,3 +11,37 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+#game {
+  display: flex;
+  flex-flow: row nowrap;
+  height: 100%;
+  width: 100%;
+}
+
+#game #controls {
+  flex: 0 0 auto;
+  padding: 10px;
+  width: 350px;
+}
+
+#game #controls .card {
+  margin-bottom: 8px;
+}
+
+#game #pixi {
+  flex: 1 1 auto;
+}

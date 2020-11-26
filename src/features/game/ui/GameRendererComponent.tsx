@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import * as PIXI from "pixi.js";
 import {GameControlState, GameRenderer} from "../pixi/GameRenderer";
 import {PixiGameData} from "../state/PixiGameData";
@@ -6,8 +6,8 @@ import {PixiGameData} from "../state/PixiGameData";
 // Setup PIXI app
 function createPixiApp(): PIXI.Application {
     return new PIXI.Application({
-        width: 1400,
-        height: 900,
+        width: 128,
+        height: 128,
         transparent: false,
         antialias: true,
         backgroundColor: 0x5a81dd,
@@ -24,9 +24,27 @@ interface GameComponentProps {
     gameData: PixiGameData
 }
 
-export const GameComponent = function(props: GameComponentProps) {
-
+export const GameRendererComponent = function(props: GameComponentProps) {
+    const divRef = useRef<HTMLDivElement>(null);
     const app = createPixiApp()
+
+    useEffect(() => {
+        const handleResize = () => {
+            const curDiv = divRef.current;
+            if (curDiv) {
+                const width = curDiv.offsetWidth;
+                const height = curDiv.offsetHeight;
+                app.renderer.resize(width, height)
+            }
+        }
+
+        window.addEventListener('resize', handleResize)
+        handleResize()
+
+        return () => {
+            window.removeEventListener('resize', handleResize)
+        }
+    }, [divRef, app.renderer])
 
     // load texture
     app.loader
@@ -44,5 +62,5 @@ export const GameComponent = function(props: GameComponentProps) {
         }
     })
 
-    return (<div id="pixi" />)
+    return (<div ref={divRef} id="pixi"/>)
 }

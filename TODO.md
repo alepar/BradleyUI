@@ -4,6 +4,8 @@
 - Add pixi-cull
 - Map knowledge fog
 ### High
+### Medium
+- fog state at the Math.round(curTurn)
 ### Low
 - hashed terrain grass
 - auto forests
