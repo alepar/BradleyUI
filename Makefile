@@ -3,12 +3,13 @@ BRADLEY_PBTS     	:= $(patsubst ./proto/%.proto,./src/protots/%_pb.d.ts,$(BRADLE
 
 .PHONY: clean proto build package
 
-all : build
+all : package
 
 package : build
 	tar cJf bradley-www.tar.xz -C build .
 
 build : proto
+	yarn install
 	npm run build
 
 proto : $(BRADLEY_PBTS)
