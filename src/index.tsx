@@ -6,12 +6,12 @@ import {Provider} from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {GameUIAndFileSelector} from "./features/game/ui/GameUIAndFileSelector";
+import {GameApp} from "./features/game/ui/GameApp";
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-        <GameUIAndFileSelector/>
+        <GameApp/>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

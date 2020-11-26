@@ -4,27 +4,22 @@ import * as PIXI from 'pixi.js'
 import {OverworldTerrainSpriteFactory} from "./SpriteFactories";
 import {FogOfWar} from "./FogOfWar";
 import {Character} from "./Character";
+import {DisplayOptionsChange, GameControlsState, PlayMode, PlayState} from "../ui/gamecontrols/gameControlsSlice";
 
-export enum GamePlayMode {
-    PLAY,
-    STEP,
-    PAUSE,
-    STOP,
+export interface KillSwitch {
+    id: string,
+    kill: boolean
 }
 
-export class GameControlState {
-    currentTurn: number = 0
-    targetTurn: number = 0
-    playMode: GamePlayMode = GamePlayMode.STOP
+export interface GameControlsStateAccessor {
+    getCurrentState(): GameControlsState
+
+    setPlayState(playState: PlayState) : void
+    setPlaySpeed(playSpeed: number): void
+    setDisplayOptions(change: DisplayOptionsChange): void
 }
 
 export class GameRenderer {
-    // Injected deps
-    private readonly pixiApp: PIXI.Application;
-    private readonly gameData: PixiGameData
-    private readonly spritesheet: PIXI.Spritesheet;
-    private readonly controlState: GameControlState
-
     // Constructed private deps
     private readonly terrainLayer: PIXI.Container
     private readonly mapObjectsLayer: PIXI.Container
@@ -33,17 +28,20 @@ export class GameRenderer {
     private readonly fogOfWar: FogOfWar
     private readonly hero: Character;
 
-    private lastBaseTurn: number = 0
-
     // Constructed exported deps
     readonly viewport: Viewport
 
-    constructor(pixiApp: PIXI.Application, gameData: PixiGameData, spritesheet: PIXI.Spritesheet, controlState: GameControlState) {
-        this.gameData = gameData
-        this.pixiApp = pixiApp
-        this.spritesheet = spritesheet
-        this.controlState = controlState
+    // Internal render state
+    private lastBaseTurn: number = 0
+    private currentTurn: number = 0
 
+    constructor(
+            private readonly pixiApp: PIXI.Application,
+            private readonly gameData: PixiGameData,
+            private readonly spritesheet: PIXI.Spritesheet,
+            private readonly controlStateAccessor: GameControlsStateAccessor,
+            private readonly killSwitch: KillSwitch)
+    {
         this.viewport = this.buildViewport()
 
         this.terrainLayer = this.buildTerrainLayer()
@@ -72,20 +70,32 @@ export class GameRenderer {
         this.renderBaseTurn(0)
 
         // Listen for frame updates
-        const ticker = pixiApp.ticker;
+        const ticker = this.pixiApp.ticker
         const mainLoop = () => {
-            this.controlState.currentTurn += 1.0/ticker.FPS
-            const curBaseTurn = Math.floor(this.controlState.currentTurn)
-
-            if (curBaseTurn !== this.lastBaseTurn) {
-                this.renderBaseTurn(curBaseTurn)
-                this.lastBaseTurn = curBaseTurn
+            if (this.killSwitch.kill) {
+                ticker.remove(mainLoop)
+                ticker.stop()
+                return
             }
 
-            if (this.controlState.currentTurn >= this.gameData.getTurnCount()-1) {
+            const controlState = this.controlStateAccessor.getCurrentState()
+            this.gridLayer.visible = controlState.displayOptions.showGrid
+
+            const currentTurn = (this.currentTurn += 1.0/ticker.FPS);
+
+            const curBaseTurn = Math.floor(currentTurn)
+
+            if (curBaseTurn !== this.lastBaseTurn) {
+                console.log("Tick from", this.killSwitch.id)
+                this.renderBaseTurn(curBaseTurn)
+                this.lastBaseTurn = curBaseTurn
+                this.controlStateAccessor.setPlayState({currentTurn: curBaseTurn, playMode: PlayMode.PLAY})
+            }
+
+            if (currentTurn >= this.gameData.getTurnCount()-1) {
                 ticker.remove(mainLoop)
             } else {
-                this.renderTween(this.controlState.currentTurn)
+                this.renderTween(currentTurn)
             }
         }
         ticker.add(mainLoop);
@@ -94,8 +104,8 @@ export class GameRenderer {
 
     private buildViewport(): Viewport {
         const viewport = new Viewport({
-            screenWidth: 1400,//window.innerWidth,
-            screenHeight: 900,//window.innerHeight,
+            // screenWidth: 1400,//window.innerWidth,
+            // screenHeight: 900,//window.innerHeight,
             // worldWidth: 16*30,
             // worldHeight: 16*15,
 

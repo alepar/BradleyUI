@@ -3,7 +3,7 @@ import {selectGameFileState} from "./fileselector/gameFileSlice";
 import {useSelector} from "react-redux";
 import {GameFileSelector} from "./fileselector/GameFileSelector";
 import {GameRendererComponent} from "./GameRendererComponent";
-import {GameControls} from "./GameControls";
+import {GameControls} from "./gamecontrols/GameControls";
 import { Spinner } from 'react-bootstrap';
 import styled from "styled-components";
 
@@ -14,7 +14,7 @@ const SpinnerDiv = styled.div`
   transform: translate(-50%, -50%);
 `;
 
-export const GameUIAndFileSelector = function() {
+export const GameApp = function() {
     const gameFile = useSelector(selectGameFileState);
     const gameName = gameFile.gameName;
     const gameData = gameFile.gameData;
