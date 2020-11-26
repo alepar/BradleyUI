@@ -40,13 +40,25 @@ const UploadContainer = styled.div`
   outline: none;
   transition: border .24s ease-in-out;
   
-  height: 50%;
+  height: 25%;
   width: 50%;
+  opacity: 0.85;
 
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+`;
+
+const Background = styled.div`
+  position: fixed;
+  height: 100%;
+  width: 100%;
+
+  background-image: url("bgnd.gif");
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.75;
 `;
 
 export function GameFileSelector() {
@@ -65,6 +77,7 @@ export function GameFileSelector() {
     });
 
     return (<div>
+        <Background/>
         <IconContainer><img src="favicon.ico" width="64px" height="64px" alt="Bradley Hero"/></IconContainer>
         <UploadContainer {...getRootProps({isDragActive, isDragAccept, isDragReject})}>
             <input {...getInputProps()} />
