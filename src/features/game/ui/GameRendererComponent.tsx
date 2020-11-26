@@ -99,7 +99,6 @@ export const GameRendererComponent = function(props: GameComponentProps) {
 
         document.getElementById('pixi')?.appendChild(app.view);
         return () => {
-            console.log("Killing", killSwitch.id)
             killSwitch.kill = true
             dispatch(resetControls())
         }

@@ -4,7 +4,13 @@ import * as PIXI from 'pixi.js'
 import {OverworldTerrainSpriteFactory} from "./SpriteFactories";
 import {FogOfWar} from "./FogOfWar";
 import {Character} from "./Character";
-import {DisplayOptionsChange, GameControlsState, PlayMode, PlayState} from "../ui/gamecontrols/gameControlsSlice";
+import {
+    DisplayOptions,
+    DisplayOptionsChange,
+    GameControlsState,
+    PlayMode,
+    PlayState
+} from "../ui/gamecontrols/gameControlsSlice";
 
 export interface KillSwitch {
     id: string,
@@ -27,21 +33,25 @@ export class GameRenderer {
     private readonly characterLayer: PIXI.Container
     private readonly fogOfWar: FogOfWar
     private readonly hero: Character;
+    private readonly ticker: PIXI.Ticker;
 
     // Constructed exported deps
     readonly viewport: Viewport
 
     // Internal render state
     private lastBaseTurn: number = 0
+    private lastRoundTurn: number = 0
     private currentTurn: number = 0
+    // Last observed state of controls
+    private lastControlPlayMode: PlayMode = PlayMode.PLAY
 
     constructor(
             private readonly pixiApp: PIXI.Application,
             private readonly gameData: PixiGameData,
             private readonly spritesheet: PIXI.Spritesheet,
             private readonly controlStateAccessor: GameControlsStateAccessor,
-            private readonly killSwitch: KillSwitch)
-    {
+            private readonly killSwitch: KillSwitch
+    ) {
         this.viewport = this.buildViewport()
 
         this.terrainLayer = this.buildTerrainLayer()
@@ -70,37 +80,40 @@ export class GameRenderer {
         this.renderBaseTurn(0)
 
         // Listen for frame updates
-        const ticker = this.pixiApp.ticker
-        const mainLoop = () => {
-            if (this.killSwitch.kill) {
-                ticker.remove(mainLoop)
-                ticker.stop()
-                return
-            }
-
-            const controlState = this.controlStateAccessor.getCurrentState()
-            this.gridLayer.visible = controlState.displayOptions.showGrid
-
-            const currentTurn = (this.currentTurn += 1.0/ticker.FPS);
-
-            const curBaseTurn = Math.floor(currentTurn)
-
-            if (curBaseTurn !== this.lastBaseTurn) {
-                console.log("Tick from", this.killSwitch.id)
-                this.renderBaseTurn(curBaseTurn)
-                this.lastBaseTurn = curBaseTurn
-                this.controlStateAccessor.setPlayState({currentTurn: curBaseTurn, playMode: PlayMode.PLAY})
-            }
-
-            if (currentTurn >= this.gameData.getTurnCount()-1) {
-                ticker.remove(mainLoop)
-            } else {
-                this.renderTween(currentTurn)
-            }
-        }
-        ticker.add(mainLoop);
+        this.ticker = this.pixiApp.ticker
+        this.ticker.add(() => this.mainLoop());
     }
 
+    mainLoop() {
+        if (this.killSwitch.kill) {
+            this.destroy();
+            return
+        }
+
+        const controlState = this.controlStateAccessor.getCurrentState()
+        this.updateDisplayOptions(controlState.displayOptions)
+
+        const curControlPlayMode = controlState.playMode
+
+        switch(controlState.playMode) {
+            case PlayMode.PLAY:
+                this.playLoop(controlState)
+                break
+            case PlayMode.PAUSE:
+                this.pauseLoop(controlState)
+                break
+        }
+
+        this.lastControlPlayMode = curControlPlayMode
+        this.lastRoundTurn = Math.round(this.currentTurn)
+    }
+
+
+    private destroy() {
+        this.ticker.remove(this.mainLoop)
+        this.ticker.stop()
+        this.pixiApp.destroy(true)
+    }
 
     private buildViewport(): Viewport {
         const viewport = new Viewport({
@@ -183,11 +196,7 @@ export class GameRenderer {
         const gameData = this.gameData;
         const turnState = gameData.getTurnState(curTurn);
 
-        this.fogOfWar.update(
-            gameData.getMap().getSize(),
-            turnState.getVisible(),
-            turnState.getObserved(),
-        )
+        this.updateFog(curTurn);
 
         const curHeroPos = turnState.getHero();
         let nextHeroPos
@@ -202,8 +211,54 @@ export class GameRenderer {
         hero.updateTween(0)
     }
 
+    private updateFog(curTurn: number) {
+        const gameData = this.gameData;
+        const turnState = gameData.getTurnState(curTurn);
+
+        this.fogOfWar.update(
+            gameData.getMap().getSize(),
+            turnState.getVisible(),
+            turnState.getObserved(),
+        )
+    }
+
     private renderTween(currentTurn: number) {
         this.hero.updateTween(currentTurn-Math.floor(currentTurn))
     }
 
+    private updateDisplayOptions(opts: DisplayOptions) {
+        this.gridLayer.visible = opts.showGrid
+    }
+
+    private playLoop(controlState: GameControlsState) {
+        const currentTurn = (this.currentTurn += 1.0/this.ticker.FPS);
+        const curBaseTurn = Math.floor(currentTurn)
+
+        if (curBaseTurn !== this.lastBaseTurn || this.lastControlPlayMode !== PlayMode.PLAY) {
+            this.renderBaseTurn(curBaseTurn)
+            this.lastBaseTurn = curBaseTurn
+        }
+
+        const currentRoundTurn = Math.round(currentTurn);
+        if (currentRoundTurn !== this.lastRoundTurn) {
+            this.controlStateAccessor.setPlayState({currentTurn: currentRoundTurn, playMode: PlayMode.PLAY})
+            this.updateFog(currentRoundTurn)
+        }
+
+        if (currentTurn >= this.gameData.getTurnCount()-1) {
+            this.controlStateAccessor.setPlayState({currentTurn: this.gameData.getTurnCount()-1, playMode: PlayMode.PAUSE})
+        } else {
+            this.renderTween(currentTurn)
+        }
+    }
+
+    private pauseLoop(controlState: GameControlsState) {
+        const curBaseTurn = controlState.currentTurn
+        if (curBaseTurn !== this.lastBaseTurn || this.currentTurn != curBaseTurn || this.lastControlPlayMode !== PlayMode.PAUSE) {
+            this.renderBaseTurn(curBaseTurn)
+            this.hero.setCoordinates(this.hero.getSrc(), this.hero.getSrc())
+            this.lastBaseTurn = curBaseTurn
+            this.currentTurn = curBaseTurn
+        }
+    }
 }

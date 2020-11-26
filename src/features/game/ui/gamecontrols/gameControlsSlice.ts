@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {RootState} from '../../../../app/store';
 
 export enum PlayMode {
-    PLAY, STEP, PAUSE
+    PLAY, PAUSE
 }
 
 export interface DisplayOptions {
@@ -52,8 +52,8 @@ export const gameControlsSlice = createSlice({
             state.displayOptions = {...state.displayOptions, ...action.payload};
         },
         resetControls: (state) => {
-            state.playMode = PlayMode.PLAY
-            state.currentTurn = 0
+            state.playMode = initialState.playMode
+            state.currentTurn = initialState.currentTurn
         }
     },
 });

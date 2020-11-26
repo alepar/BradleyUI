@@ -6,7 +6,7 @@ import * as Icon from 'react-bootstrap-icons';
 import {Button, ButtonGroup, Card, Form, Table} from "react-bootstrap";
 import styled from 'styled-components';
 import ReactSlider from "react-slider";
-import {PlayMode, selectGameControlsState, setDisplayOptions} from "./gameControlsSlice";
+import {PlayMode, selectGameControlsState, setDisplayOptions, setPlayState} from "./gameControlsSlice";
 
 const StyledSlider = styled(ReactSlider)`
     width: 100%;
@@ -86,14 +86,35 @@ export const GameControls = function() {
                         max={gameData.getTurnCount()-1}
                         renderTrack={Track}
                         renderThumb={Thumb}
+                        onChange={value => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: value as number}))}
                     />
                     <ButtonGroup>
-                        <Button variant={buttonVariant} size={buttonSize}><Icon.SkipBackward size={iconSize}/></Button>
-                        <Button variant={buttonVariant} size={buttonSize}><Icon.SkipStart size={iconSize}/></Button>
-                        <Button variant={buttonVariant} size={buttonSize}><Icon.Pause size={iconSize}/></Button>
-                        <Button variant={buttonVariant} size={buttonSize} active={controls.playMode === PlayMode.PLAY}><Icon.Play size={iconSize}/></Button>
-                        <Button variant={buttonVariant} size={buttonSize}><Icon.SkipEnd size={iconSize}/></Button>
-                        <Button variant={buttonVariant} size={buttonSize}><Icon.SkipForward size={iconSize}/></Button>
+                        <Button variant={buttonVariant} size={buttonSize}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: 0}))}>
+                            <Icon.SkipBackward size={iconSize}/>
+                        </Button>
+                        <Button variant={buttonVariant} size={buttonSize}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: Math.max(0, controls.currentTurn-1)}))}>
+                            <Icon.SkipStart size={iconSize}/>
+                        </Button>
+
+                        <Button variant={buttonVariant} size={buttonSize}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: controls.currentTurn}))}>
+                            <Icon.Pause size={iconSize}/>
+                        </Button>
+                        <Button variant={buttonVariant} size={buttonSize} active={controls.playMode === PlayMode.PLAY}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PLAY, currentTurn: controls.currentTurn}))}>
+                            <Icon.Play size={iconSize}/>
+                        </Button>
+
+                        <Button variant={buttonVariant} size={buttonSize}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: Math.min(gameData.getTurnCount()-1, controls.currentTurn+1)}))}>
+                            <Icon.SkipEnd size={iconSize}/>
+                        </Button>
+                        <Button variant={buttonVariant} size={buttonSize}
+                                onClick={() => dispatch(setPlayState({playMode: PlayMode.PAUSE, currentTurn: gameData.getTurnCount()-1}))}>
+                            <Icon.SkipForward size={iconSize}/>
+                        </Button>
                     </ButtonGroup>
                 </Card.Body>
             </Card>

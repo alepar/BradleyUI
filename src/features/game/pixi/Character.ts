@@ -27,6 +27,10 @@ export class Character {
         this.idle.visible = true
     }
 
+    getSrc(): PIXI.IPointData {
+        return this.src
+    }
+
     setCoordinates(src: PIXI.IPointData, dst: PIXI.IPointData) {
         this.src = src
         this.dst = dst
