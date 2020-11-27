@@ -254,7 +254,7 @@ export class GameRenderer {
 
     private pauseLoop(controlState: GameControlsState) {
         const curBaseTurn = controlState.currentTurn
-        if (curBaseTurn !== this.lastBaseTurn || this.currentTurn != curBaseTurn || this.lastControlPlayMode !== PlayMode.PAUSE) {
+        if (curBaseTurn !== this.lastBaseTurn || this.currentTurn !== curBaseTurn || this.lastControlPlayMode !== PlayMode.PAUSE) {
             this.renderBaseTurn(curBaseTurn)
             this.hero.setCoordinates(this.hero.getSrc(), this.hero.getSrc())
             this.lastBaseTurn = curBaseTurn

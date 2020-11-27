@@ -1,4 +1,4 @@
-import {GameData, Node, NodeType, TurnData} from "../../../protots/bradleyinterface_pb";
+import {Coordinate, GameData, Node, NodeType} from "../../../protots/bradleyinterface_pb";
 import {PixiGameData, PixiMapData, PixiTurnData} from "./PixiGameData";
 import {TerrainType} from "../pixi/SpriteFactories";
 import * as PIXI from "pixi.js";
@@ -79,49 +79,83 @@ class ProtobufBackedUIMapData implements PixiMapData {
 
 }
 
-class ProtobufBackedUITurnData implements PixiTurnData {
+class PrecalculatedTurnData implements PixiTurnData {
 
-    constructor(private readonly turnNr: number, private readonly turnData: TurnData, private readonly radius: number) {
-    }
+    constructor(
+        private readonly turnNr: number,
+        private readonly hero: PIXI.IPointData,
+        private readonly visible: PIXI.IPointData[],
+        private readonly observed: PIXI.IPointData[],
+    ) {}
 
     getObserved(): PIXI.IPointData[] {
-        return this.getVisible()
+        return this.observed
     }
 
     getHero(): PIXI.IPointData {
-        const hero = this.turnData.getHero()
-        if (!hero) throw new Error("no hero at " + this.turnNr)
-        return {x: hero.getX(), y: hero.getY()}
+        return this.hero
     }
 
     getVisible(): PIXI.IPointData[] {
-        const visiblePoints: PIXI.IPointData[] = [];
-        const heroPos = this.getHero();
-        const radius2 = this.radius*this.radius
-
-        for(let x=heroPos.x-this.radius; x<=heroPos.x+this.radius; x++) {
-            for(let y=heroPos.y-this.radius; y<=heroPos.y+this.radius; y++) {
-                let dx = x-heroPos.x
-                dx = dx*dx
-                let dy = y-heroPos.y
-                dy = dy*dy
-                if (dx+dy<=radius2) {
-                    visiblePoints.push({x: x, y: y})
-                }
-            }
-        }
-
-        return visiblePoints;
+        return this.visible
     }
 
 }
 
+function calculateVisibility(center: PIXI.IPointData, radius: number) {
+    const visiblePoints: PIXI.IPointData[] = [];
+    const radius2 = radius * radius
+
+    for (let x = center.x - radius; x <= center.x + radius; x++) {
+        for (let y = center.y - radius; y <= center.y + radius; y++) {
+            let dx = x - center.x
+            dx = dx * dx
+            let dy = y - center.y
+            dy = dy * dy
+            if (dx + dy <= radius2) {
+                visiblePoints.push({x: x, y: y})
+            }
+        }
+    }
+
+    return visiblePoints;
+}
+
+function toPixiPoint(coord: Coordinate): PIXI.IPointData {
+    return {x: coord.getX(), y: coord.getY()}
+}
+
+class IPointDataSet {
+    private readonly pointMap: Map<string, PIXI.IPointData> = new Map()
+
+    addAll(points: PIXI.IPointData[]) {
+       for (const point of points) {
+           this.pointMap.set(JSON.stringify(point), point)
+       }
+    }
+
+    values(): PIXI.IPointData[] {
+        const result: PIXI.IPointData[] = []
+        this.pointMap.forEach(point => result.push(point))
+        return result
+    }
+}
+
 export class ProtobufBackedUIGameData implements PixiGameData {
 
-    private readonly pb: GameData
+    private readonly turnStates: PixiTurnData[] = []
 
-    constructor(pbGameData: GameData) {
-        this.pb = pbGameData
+    constructor(private readonly pb: GameData) {
+        const observedPoints = new IPointDataSet()
+
+        for(let i=0; i<pb.getTurnsList().length; i++) {
+            const heroCoord = pb.getTurnsList()[i].getHero();
+            if (!heroCoord) throw new Error("no hero data at " + heroCoord)
+            const heroPoint = toPixiPoint(heroCoord)
+            const visiblePoints = calculateVisibility(heroPoint, pb.getVisibilityradius());
+            observedPoints.addAll(visiblePoints)
+            this.turnStates.push(new PrecalculatedTurnData(i, heroPoint, visiblePoints, observedPoints.values()))
+        }
     }
 
     getMap(): PixiMapData {
@@ -133,8 +167,7 @@ export class ProtobufBackedUIGameData implements PixiGameData {
     }
 
     getTurnState(turnNr: number): PixiTurnData {
-        return new ProtobufBackedUITurnData(turnNr, this.pb.getTurnsList()[turnNr], this.pb.getVisibilityradius())
+        return this.turnStates[turnNr]
     }
-
 
 }

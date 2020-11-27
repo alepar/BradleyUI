@@ -1,5 +1,4 @@
 ### Critical
-- Map knowledge fog
 ### High
 - Arrow in the direction of next move
 ### Medium
