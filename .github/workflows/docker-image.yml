@@ -15,10 +15,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: true 
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v1
-    - name: Build protos
-      run: make proto
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1      
     - name: Login to GitHub Container Registry

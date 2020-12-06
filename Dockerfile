@@ -6,7 +6,8 @@ COPY package.json ./
 COPY yarn.lock ./
 RUN yarn install
 COPY . ./
-RUN npm run build
+RUN apk add protoc make
+RUN make build
 
 # production environment
 FROM nginx:stable-alpine
