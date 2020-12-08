@@ -1,4 +1,6 @@
 ### Critical
+- Animation speed
+- Cursor/bradley position
 ### High
 - Arrow in the direction of next move
 ### Medium
